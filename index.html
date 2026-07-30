@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ওভারটাইম ট্র্যাকার - Hashi Akter</title>
-    <!-- Firebase SDK (ব্যাগ্রাউন্ডে সিঙ্কের জন্য রাখা) -->
+    <!-- Firebase SDK (ব্যাকগ্রাউন্ডে সিঙ্কের জন্য) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- html2pdf.js (ডাইরেক্ট সুন্দর PDF ডাউনলোডের জন্য) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -200,14 +204,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; border: none; max-width: 100%; }
-            .form-group, .btn-main, .action-buttons, .edit-btn, input[type="file"], .btn-cancel { display: none !important; }
-            th { background: #333 !important; color: white !important; }
-            .total-box { border: 2px solid #333; background: #f0f0f0 !important; color: black !important; box-shadow: none; }
-        }
     </style>
 </head>
 <body>
@@ -241,7 +237,7 @@
         <!-- ডাটা ডাউনলোড বাটনগুলো -->
         <div class="action-buttons">
             <button class="btn-action btn-excel" onclick="exportToCSV()">📊 Excel ডাউনলোড</button>
-            <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF / প্রিন্ট করুন</button>
+            <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF ডাউনলোড</button>
         </div>
 
         <!-- টেবিল লিস্ট -->
@@ -267,7 +263,6 @@
     </div>
 
     <script>
-        // ফায়ারবেস কনফিগারেশন (প্রয়োজন হলে আপনার কি বসাতে পারবেন)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -292,7 +287,7 @@
         }
 
         let records = [];
-        let editingId = null; // বর্তমানে কোন ডাটা এডিট হচ্ছে তা ট্র্যাক করার জন্য
+        let editingId = null;
 
         document.getElementById('dateInput').valueAsDate = new Date();
         const profileImage = document.getElementById('profileImage');
@@ -333,7 +328,6 @@
             return `${h}:${m} ${ampm}`;
         }
 
-        // হিসাব যোগ করা অথবা এডিট/আপডেট করা
         function handleSubmit() {
             const date = document.getElementById('dateInput').value;
             const inTime = document.getElementById('inTime').value;
@@ -353,7 +347,6 @@
             }
 
             if (editingId) {
-                // এডিট করা ডাটা সেভ করা
                 if (isFirebaseConnected) {
                     db.ref('otRecords/' + editingId).update({
                         date: date,
@@ -370,7 +363,6 @@
                 }
                 cancelEdit();
             } else {
-                // নতুন ডাটা যুক্ত করা
                 const recordId = Date.now().toString();
                 const newRecord = {
                     id: recordId,
@@ -389,7 +381,6 @@
             }
         }
 
-        // এডিট মোড চালু করা
         function editRecord(id) {
             const item = records.find(r => r.id === id);
             if (!item) return;
@@ -409,7 +400,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // এডিট বাতিল করা
         function cancelEdit() {
             editingId = null;
             document.getElementById('dateInput').valueAsDate = new Date();
@@ -477,12 +467,70 @@
             document.body.removeChild(link);
         }
 
+        // নিখুঁত পিডিএফ ডাউনলোড ফাংশন (যা সরাসরি সাজানো PDF সেভ করবে)
         function downloadPDF() {
             if (records.length === 0) {
-                alert("প্রিন্ট বা পিডিএফ করার মতো কোনো ডাটা নেই!");
+                alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
                 return;
             }
-            window.print();
+
+            const element = document.createElement('div');
+            element.style.padding = '20px';
+            element.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+            element.style.color = '#333';
+
+            let tableRows = '';
+            let totalOT = 0;
+            
+            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedRecords.forEach(r => {
+                totalOT += r.otHours;
+                tableRows += `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; text-align: center;">${r.date}</td>
+                        <td style="padding: 10px; text-align: center;">${formatTime(r.inTime)}</td>
+                        <td style="padding: 10px; text-align: center;">${formatTime(r.outTime)}</td>
+                        <td style="padding: 10px; text-align: center; color: #FF6A88; font-weight: bold;">${r.otHours > 0 ? r.otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
+                    </tr>
+                `;
+            });
+
+            element.innerHTML = `
+                <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #FF6A88; padding-bottom: 15px;">
+                    <h2 style="color: #FF6A88; margin: 0 0 5px 0; font-size: 24px;">ওভারটাইম সামারি রিপোর্ট</h2>
+                    <h3 style="margin: 0 0 5px 0; color: #333; font-size: 18px;">Hashi Akter</h3>
+                    <p style="margin: 0; color: #666; font-size: 13px;">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                    <thead>
+                        <tr style="background-color: #FF6A88; color: white;">
+                            <th style="padding: 10px; text-align: center;">তারিখ</th>
+                            <th style="padding: 10px; text-align: center;">ইন টাইম</th>
+                            <th style="padding: 10px; text-align: center;">আউট টাইম</th>
+                            <th style="padding: 10px; text-align: center;">ওভারটাইম</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+
+                <div style="background: #e6f4ea; border: 2px solid #34a853; padding: 15px; border-radius: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #137333;">
+                    সর্বমোট ওভারটাইম: ${totalOT.toFixed(2)} ঘণ্টা
+                </div>
+            `;
+
+            const opt = {
+                margin:       10,
+                filename:     `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>

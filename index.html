@@ -3,26 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>প্রোফাইল ওভারটাইম ট্র্যাকার</title>
+    <title>ওভারটাইম ট্র্যাকার</title>
     <style>
-        /* মূল কালার প্যালেট */
-        :root {
-            --bg-color: #101820; /* একদম ডিপ নেভি/ব্ল্যাক */
-            --container-bg: #1a2530; /* ডিপ চারকোল গ্রিন */
-            --primary-green: #10B981; /* উজ্জ্বল সবুজ বাটন ও হাইলাইট */
-            --dark-green: #059669; /* বাটনের হোভার কালার */
-            --accent-gold: #FBBF24; /* ওভারটাইম ও টোটাল হাইলাইট */
-            --text-main: #F3F4F6; /* হালকা সাদা লেখা */
-            --text-sub: #9CA3AF; /* ধূসর লেখা */
-            --border-color: #374151;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(#2d3748 1px, transparent 1px);
-            background-size: 20px 20px;
-            color: var(--text-main);
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
             min-height: 100vh;
             margin: 0;
             padding: 20px;
@@ -30,363 +15,246 @@
             justify-content: center;
             align-items: center;
         }
-
         .container {
-            background-color: var(--container-bg);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
             border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 900px;
-            border: 1px solid var(--border-color);
+            max-width: 800px;
         }
-
-        /* প্রোফাইল সেকশন */
         .profile-section {
             text-align: center;
-            margin-bottom: 35px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 30px;
         }
-
-        .profile-pic-container {
-            position: relative;
-            display: inline-block;
-        }
-
         .profile-pic {
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid var(--primary-green);
+            border: 4px solid #FF6A88;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 106, 136, 0.3);
         }
-
         .profile-pic:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
         }
-
-        .upload-icon {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background-color: var(--accent-gold);
-            color: #000;
-            border-radius: 50%;
-            padding: 8px;
-            font-size: 18px;
-            cursor: pointer;
-            border: 2px solid var(--container-bg);
-        }
-
         input[type="file"] {
             display: none;
         }
-
         .title {
-            color: var(--text-main);
-            font-size: 30px;
-            margin-top: 20px;
-            font-weight: 800;
-            letter-spacing: 1px;
+            color: #333;
+            font-size: 26px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }
-
         .subtitle {
-            color: var(--primary-green);
-            font-size: 16px;
-            margin-top: 5px;
-            font-weight: 600;
-            background-color: rgba(16, 185, 129, 0.1);
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
-
-        /* ইনপুট ফর্ম */
         .form-group {
             display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
+            gap: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
-
         .input-box {
             flex: 1;
-            min-width: 200px;
+            min-width: 150px;
         }
-
         label {
             display: block;
-            margin-bottom: 10px;
-            color: var(--text-sub);
-            font-weight: 600;
-            font-size: 15px;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: bold;
         }
-
         input {
             width: 100%;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 16px;
-            transition: 0.3s;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
             box-sizing: border-box;
-        }
-
-        input:focus {
             outline: none;
-            border-color: var(--primary-green);
-            background-color: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+            font-size: 15px;
+            transition: 0.3s;
         }
-
-        /* শক্ত বাটন */
+        input:focus {
+            border-color: #FF6A88;
+            box-shadow: 0 0 10px rgba(255, 106, 136, 0.2);
+            background: #fff;
+        }
         button {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+            background: linear-gradient(to right, #FF6A88, #FF9A9E);
             color: white;
             border: none;
-            padding: 18px 25px;
-            border-radius: 12px;
+            padding: 15px 20px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 18px;
             font-weight: bold;
             transition: 0.3s;
             width: 100%;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 5px 15px rgba(255, 106, 136, 0.4);
         }
-
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+            box-shadow: 0 8px 20px rgba(255, 106, 136, 0.6);
         }
-
-        /* টেবিল ডিজাইন */
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 35px;
-            background-color: rgba(0, 0, 0, 0.1);
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
-
         th, td {
-            padding: 18px;
+            padding: 15px;
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #f0f0f0;
         }
-
         th {
-            background-color: #111827; /* টেবিল হেড আরো ডিপ */
-            color: var(--text-main);
+            background: #FF6A88;
+            color: white;
             font-size: 16px;
-            font-weight: 700;
-            text-transform: uppercase;
         }
-
-        tr:last-child td {
-            border-bottom: none;
+        tr:hover {
+            background-color: #fafafa;
         }
-
-        tr:hover td {
-            background-color: rgba(255, 255, 255, 0.03);
-        }
-
-        /* ওভারটাইম হাইলাইট */
         .ot-highlight {
-            color: var(--accent-gold);
+            color: #FF6A88;
             font-weight: bold;
-            font-size: 17px;
-            background-color: rgba(251, 191, 36, 0.1);
-            padding: 5px 10px;
-            border-radius: 8px;
+            font-size: 16px;
         }
-
-        /* টোটাল ওভারভিউ বক্স */
+        /* সর্বমোট হিসাবের বক্সের ডিজাইন */
         .total-box {
-            margin-top: 30px;
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            padding: 25px;
-            border-radius: 15px;
-            border: 2px solid var(--accent-gold);
+            margin-top: 20px;
+            background: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .total-label {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--text-main);
-        }
-
-        .total-amount {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--accent-gold);
-            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-        }
-
-        /* রেসপন্সিভ */
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            .form-group { flex-direction: column; gap: 10px; }
-            th, td { padding: 10px; font-size: 14px; }
-            .title { font-size: 24px; }
-            .total-box { flex-direction: column; text-align: center; gap: 10px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- প্রোফাইল সেকশন -->
         <div class="profile-section">
-            <div class="profile-pic-container">
-                <!-- UI Avatars used for dynamic initial, background set to matching green -->
-                <img src="https://ui-avatars.com/api/?name=User&background=10B981&color=fff&size=140" alt="Profile" class="profile-pic" id="profileImage" onclick="document.getElementById('imageUpload').click()">
-                <div class="upload-icon" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করুন">📷</div>
-            </div>
+            <img src="https://ui-avatars.com/api/?name=Hashi+Akter&background=FF6A88&color=fff&size=128" alt="Profile" class="profile-pic" id="profileImage" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
             <input type="file" id="imageUpload" accept="image/*">
-            <div class="title">ওভারটাইম হিসাব প্যানেল</div>
-            <div class="subtitle">জেনারেল ডিউটি: ০৮:০০ AM - ০৫:০০ PM</div>
+            <div class="title">ওভারটাইম হিসাব - Hashi Akter</div>
+            <div class="subtitle">জেনারেল ডিউটি: সকাল ৮:০০ - বিকেল ৫:০০</div>
         </div>
 
-        <!-- ইনপুট ফর্ম -->
         <div class="form-group">
             <div class="input-box">
-                <label>আজকের তারিখ</label>
+                <label>তারিখ</label>
                 <input type="date" id="dateInput">
             </div>
             <div class="input-box">
-                <label>কাজে প্রবেশের সময় (In)</label>
+                <label>ইন টাইম</label>
                 <input type="time" id="inTime" value="08:00">
             </div>
             <div class="input-box">
-                <label>কাজ শেষের সময় (Out)</label>
-                <input type="time" id="outTime" value="19:00"> <!-- উদাহরণ হিসেবে ৭টা দেওয়া -->
+                <label>আউট টাইম</label>
+                <input type="time" id="outTime" value="17:00">
             </div>
         </div>
-        <button onclick="calculateOT()">ডেইলি হিসাব যোগ করুন</button>
+        <button onclick="calculateOT()">হিসাব যোগ করুন</button>
 
-        <!-- ডাটা টেবিল -->
-        <table id="otTable">
+        <table>
             <thead>
                 <tr>
                     <th>তারিখ</th>
-                    <th>প্রবেশ</th>
-                    <th>প্রস্থান</th>
+                    <th>ইন টাইম</th>
+                    <th>আউট টাইম</th>
                     <th>ওভারটাইম</th>
                 </tr>
             </thead>
             <tbody id="recordTable">
-                <!-- এখানে নতুন লাইন যুক্ত হবে -->
+                <!-- Data will be added here -->
             </tbody>
         </table>
 
-        <!-- সর্বমোট হিসাব -->
+        <!-- সর্বমোট হিসাবের বক্স -->
         <div class="total-box">
-            <div class="total-label">এই মাসের সর্বমোট ওভারটাইম:</div>
-            <div class="total-amount" id="totalOtDisplay">০.০০ ঘণ্টা</div>
+            <span>সর্বমোট ওভারটাইম:</span>
+            <span id="totalOtDisplay">০.০০ ঘণ্টা</span>
         </div>
     </div>
 
     <script>
+        // সর্বমোট ওভারটাইম রাখার ভেরিয়েবল
         let totalOvertimeHours = 0;
 
-        // আজকের তারিখ অটো সেট করা
+        // প্রোফাইল পিকচার আপলোডের লজিক
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('profileImage').src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // অটোমেটিক আজকের তারিখ সেট করা
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        // প্রোফাইল পিকচার আপলোড এবং লোকাল স্টোরেজে সেভ করা
-        const imageUpload = document.getElementById('imageUpload');
-        const profileImage = document.getElementById('profileImage');
-
-        // পেজ লোড হলে সেভ করা ছবি চেক করা
-        window.addEventListener('load', () => {
-            const savedImage = localStorage.getItem('profilePic');
-            if (savedImage) {
-                profileImage.src = savedImage;
-            }
-        });
-
-        imageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const imageData = event.target.result;
-                    profileImage.src = imageData;
-                    // লোকাল স্টোরেজে সেভ (ব্রাউজার রিফ্রেশ করলেও থাকবে)
-                    localStorage.setItem('profilePic', imageData);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // সময় ফরম্যাট করা (12 hour pattern)
-        function formatTime12(timeString) {
-            if(!timeString) return "";
-            let [hh, mm] = timeString.split(':');
-            let ampm = hh >= 12 ? 'PM' : 'AM';
-            hh = hh % 12 || 12;
-            return `${hh}:${mm} ${ampm}`;
-        }
-
-        // ওভারটাইম ক্যালকুলেশন
+        // ওভারটাইম ক্যালকুলেট করার লজিক
         function calculateOT() {
             const date = document.getElementById('dateInput').value;
             const inTime = document.getElementById('inTime').value;
             const outTime = document.getElementById('outTime').value;
 
-            if(!date || !inTime || !outTime) {
-                alert('দয়া করে তারিখ এবং সঠিক সময় দিন।');
+            if(!date || !outTime) {
+                alert('দয়া করে সঠিক সময় সিলেক্ট করুন।');
                 return;
             }
 
-            // স্ট্যান্ডার্ড ছুটি বিকেল ৫:০০ (17:00)
-            const standardOut = 17; 
-            const standardOutMinutes = 17 * 60;
+            // বিকেল ৫:০০ (17:00) কে স্ট্যান্ডার্ড আউট টাইম ধরা হয়েছে
+            const outDate = new Date(`1970-01-01T${outTime}:00`);
+            const standardOutDate = new Date(`1970-01-01T17:00:00`);
 
-            const outSplit = outTime.split(':');
-            const outHours = parseInt(outSplit[0]);
-            const outMinutes = parseInt(outSplit[1]);
-            const totalOutMinutes = (outHours * 60) + outMinutes;
-
-            let otHoursOutput = 0;
-
-            if (totalOutMinutes > standardOutMinutes) {
-                const diffMinutes = totalOutMinutes - standardOutMinutes;
-                otHoursOutput = diffMinutes / 60;
+            let otHours = 0;
+            if (outDate > standardOutDate) {
+                const diffMs = outDate - standardOutDate;
+                otHours = diffMs / (1000 * 60 * 60); 
             }
 
-            // টেবিলে ডাটা যোগ করা (নতুন ডাটা সবার উপরে থাকবে)
+            // সময়কে AM/PM ফরম্যাটে সাজানো
+            const formatTime = (time) => {
+                let [h, m] = time.split(':');
+                let ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return `${h}:${m} ${ampm}`;
+            };
+
+            // টেবিলে ডাটা যোগ করা
             const tbody = document.getElementById('recordTable');
-            const row = tbody.insertRow(0);
-
-            // তারিখ ফরম্যাট করা (DD-MM-YYYY)
-            const dateObj = new Date(date);
-            const formattedDate = dateObj.getDate().toString().padStart(2, '0') + '-' + (dateObj.getMonth()+1).toString().padStart(2, '0') + '-' + dateObj.getFullYear();
-
+            const row = tbody.insertRow(-1); // নতুন ডাটা নিচে নিচে যুক্ত হবে
             row.innerHTML = `
-                <td>${formattedDate}</td>
-                <td>${formatTime12(inTime)}</td>
-                <td>${formatTime12(outTime)}</td>
-                <td><span class="ot-highlight">${otHoursOutput > 0 ? otHoursOutput.toFixed(2) + ' ঘণ্টা' : 'নাই'}</span></td>
+                <td>${date}</td>
+                <td>${formatTime(inTime)}</td>
+                <td>${formatTime(outTime)}</td>
+                <td class="ot-highlight">${otHours > 0 ? otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
             `;
 
-            // সর্বমোট আপডেট
-            totalOvertimeHours += otHoursOutput;
-            document.getElementById('totalOtDisplay').innerText = totalOvertimeHours.toFixed(2) + ' ঘণ্টা';
+            // সর্বমোট ওভারটাইম আপডেট করা
+            if(otHours > 0) {
+                totalOvertimeHours += otHours;
+                document.getElementById('totalOtDisplay').innerText = totalOvertimeHours.toFixed(2) + ' ঘণ্টা';
+            }
         }
     </script>
 </body>

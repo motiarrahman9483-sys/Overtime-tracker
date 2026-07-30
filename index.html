@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ওভারটাইম ট্র্যাকার - Hashi Akter</title>
-    <!-- Firebase SDK (গুগল ক্লাউড সিঙ্ক) -->
+    <!-- Firebase SDK (ব্যাগ্রাউন্ডে সিঙ্কের জন্য রাখা) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -57,14 +57,7 @@
         .subtitle {
             color: #555;
             font-size: 14px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .status-badge {
-            font-size: 13px;
-            padding: 5px 12px;
-            border-radius: 15px;
-            display: inline-block;
+            margin-bottom: 15px;
             font-weight: 600;
         }
         .form-group {
@@ -115,6 +108,18 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(255, 106, 136, 0.6);
         }
+        .btn-cancel {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 8px;
+            width: 100%;
+            display: none;
+        }
 
         .action-buttons {
             display: flex;
@@ -139,8 +144,6 @@
         .btn-excel:hover { background-color: #177d4d; }
         .btn-pdf { background-color: #0284c7; }
         .btn-pdf:hover { background-color: #0369a1; }
-        .btn-clear { background-color: #ef4444; }
-        .btn-clear:hover { background-color: #dc2626; }
 
         table {
             width: 100%;
@@ -169,17 +172,19 @@
             font-weight: bold;
             font-size: 16px;
         }
-        .delete-btn {
-            background: #ff4d4d;
+        .edit-btn {
+            background: #f59e0b;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: 0.2s;
         }
-        .delete-btn:hover {
-            background: #cc0000;
+        .edit-btn:hover {
+            background: #d97706;
         }
         .total-box {
             margin-top: 20px;
@@ -199,7 +204,7 @@
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; border: none; max-width: 100%; }
-            .form-group, .btn-main, .action-buttons, .delete-btn, input[type="file"], .status-badge { display: none !important; }
+            .form-group, .btn-main, .action-buttons, .edit-btn, input[type="file"], .btn-cancel { display: none !important; }
             th { background: #333 !important; color: white !important; }
             .total-box { border: 2px solid #333; background: #f0f0f0 !important; color: black !important; box-shadow: none; }
         }
@@ -213,7 +218,6 @@
             <input type="file" id="imageUpload" accept="image/*">
             <div class="title">ওভারটাইম হিসাব - Hashi Akter</div>
             <div class="subtitle">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</div>
-            <div id="syncStatus" class="status-badge">🔄 ডাটা স্টেটাস চেক হচ্ছে...</div>
         </div>
 
         <!-- ইনপুট ফর্ম -->
@@ -231,13 +235,13 @@
                 <input type="time" id="outTime" value="19:00">
             </div>
         </div>
-        <button class="btn-main" onclick="calculateOT()">হিসাব যোগ করুন</button>
+        <button id="submitBtn" class="btn-main" onclick="handleSubmit()">হিসাব যোগ করুন</button>
+        <button id="cancelBtn" class="btn-cancel" onclick="cancelEdit()">এডিট বাতিল করুন</button>
 
         <!-- ডাটা ডাউনলোড বাটনগুলো -->
         <div class="action-buttons">
             <button class="btn-action btn-excel" onclick="exportToCSV()">📊 Excel ডাউনলোড</button>
             <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF / প্রিন্ট করুন</button>
-            <button class="btn-action btn-clear" onclick="clearAllRecords()">🗑️ মাস রিসেট</button>
         </div>
 
         <!-- টেবিল লিস্ট -->
@@ -263,9 +267,7 @@
     </div>
 
     <script>
-        // =========================================================================
-        // ⚠️ আপনার মোবাইল এবং পিসির ডাটা এক করার জন্য নিচে Firebase Config বসাতে হবে
-        // =========================================================================
+        // ফায়ারবেস কনফিগারেশন (প্রয়োজন হলে আপনার কি বসাতে পারবেন)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -286,33 +288,26 @@
                 isFirebaseConnected = true;
             }
         } catch (e) {
-            console.log("Firebase not initialized.", e);
+            console.log("Firebase status error", e);
         }
 
         let records = [];
-        document.getElementById('dateInput').valueAsDate = new Date();
+        let editingId = null; // বর্তমানে কোন ডাটা এডিট হচ্ছে তা ট্র্যাক করার জন্য
 
+        document.getElementById('dateInput').valueAsDate = new Date();
         const profileImage = document.getElementById('profileImage');
-        const syncStatus = document.getElementById('syncStatus');
 
         window.addEventListener('load', () => {
             const savedImage = localStorage.getItem('userProfilePic');
             if (savedImage) profileImage.src = savedImage;
 
             if (isFirebaseConnected) {
-                syncStatus.innerText = "☁️ ক্লাউড ডাটাসিঙ্ক একটিভ (মোবাইল + পিসি কানেক্টেড)";
-                syncStatus.style.backgroundColor = "#dcfce7";
-                syncStatus.style.color = "#166534";
-
                 db.ref('otRecords').on('value', (snapshot) => {
                     const data = snapshot.val();
                     records = data ? Object.values(data) : [];
                     renderTable();
                 });
             } else {
-                syncStatus.innerText = "📱 লোকাল মোড (ফায়ারবেস যুক্ত করলে পিসির সাথে সিঙ্ক হবে)";
-                syncStatus.style.backgroundColor = "#fef3c7";
-                syncStatus.style.color = "#92400e";
                 records = JSON.parse(localStorage.getItem('otRecords')) || [];
                 renderTable();
             }
@@ -331,13 +326,15 @@
         });
 
         function formatTime(time) {
+            if(!time) return "";
             let [h, m] = time.split(':');
             let ampm = h >= 12 ? 'PM' : 'AM';
             h = h % 12 || 12;
             return `${h}:${m} ${ampm}`;
         }
 
-        function calculateOT() {
+        // হিসাব যোগ করা অথবা এডিট/আপডেট করা
+        function handleSubmit() {
             const date = document.getElementById('dateInput').value;
             const inTime = document.getElementById('inTime').value;
             const outTime = document.getElementById('outTime').value;
@@ -355,21 +352,76 @@
                 otHours = (outDate - standardOutDate) / (1000 * 60 * 60); 
             }
 
-            const recordId = Date.now().toString();
-            const newRecord = {
-                id: recordId,
-                date: date,
-                inTime: inTime,
-                outTime: outTime,
-                otHours: otHours
-            };
-
-            if (isFirebaseConnected) {
-                db.ref('otRecords/' + recordId).set(newRecord);
+            if (editingId) {
+                // এডিট করা ডাটা সেভ করা
+                if (isFirebaseConnected) {
+                    db.ref('otRecords/' + editingId).update({
+                        date: date,
+                        inTime: inTime,
+                        outTime: outTime,
+                        otHours: otHours
+                    });
+                } else {
+                    const index = records.findIndex(r => r.id === editingId);
+                    if (index !== -1) {
+                        records[index] = { id: editingId, date, inTime, outTime, otHours };
+                        saveLocalAndRender();
+                    }
+                }
+                cancelEdit();
             } else {
-                records.unshift(newRecord);
-                saveLocalAndRender();
+                // নতুন ডাটা যুক্ত করা
+                const recordId = Date.now().toString();
+                const newRecord = {
+                    id: recordId,
+                    date: date,
+                    inTime: inTime,
+                    outTime: outTime,
+                    otHours: otHours
+                };
+
+                if (isFirebaseConnected) {
+                    db.ref('otRecords/' + recordId).set(newRecord);
+                } else {
+                    records.unshift(newRecord);
+                    saveLocalAndRender();
+                }
             }
+        }
+
+        // এডিট মোড চালু করা
+        function editRecord(id) {
+            const item = records.find(r => r.id === id);
+            if (!item) return;
+
+            document.getElementById('dateInput').value = item.date;
+            document.getElementById('inTime').value = item.inTime;
+            document.getElementById('outTime').value = item.outTime;
+
+            editingId = id;
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "হিসাব আপডেট করুন";
+            submitBtn.style.background = "linear-gradient(to right, #43e97b, #38f9d7)";
+            submitBtn.style.color = "#1a4d2e";
+
+            document.getElementById('cancelBtn').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // এডিট বাতিল করা
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('dateInput').valueAsDate = new Date();
+            document.getElementById('inTime').value = "08:00";
+            document.getElementById('outTime').value = "19:00";
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "হিসাব যোগ করুন";
+            submitBtn.style.background = "linear-gradient(to right, #FF6A88, #FF9A9E)";
+            submitBtn.style.color = "white";
+
+            document.getElementById('cancelBtn').style.display = "none";
         }
 
         function saveLocalAndRender() {
@@ -382,7 +434,7 @@
             tbody.innerHTML = '';
             let totalOT = 0;
 
-            records.sort((a, b) => b.id - a.id);
+            records.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             records.forEach((item) => {
                 totalOT += item.otHours;
@@ -392,20 +444,11 @@
                     <td>${formatTime(item.inTime)}</td>
                     <td>${formatTime(item.outTime)}</td>
                     <td class="ot-highlight">${item.otHours > 0 ? item.otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
-                    <td><button class="delete-btn" onclick="deleteRecord('${item.id}')">মুছুন</button></td>
+                    <td><button class="edit-btn" onclick="editRecord('${item.id}')">✏️ এডিট</button></td>
                 `;
             });
 
             document.getElementById('totalOtDisplay').innerText = totalOT.toFixed(2) + ' ঘণ্টা';
-        }
-
-        function deleteRecord(id) {
-            if (isFirebaseConnected) {
-                db.ref('otRecords/' + id).remove();
-            } else {
-                records = records.filter(item => item.id !== id);
-                saveLocalAndRender();
-            }
         }
 
         function exportToCSV() {
@@ -440,18 +483,6 @@
                 return;
             }
             window.print();
-        }
-
-        function clearAllRecords() {
-            if (records.length === 0) return;
-            if (confirm("আপনি কি নিশ্চিত যে পুরো মাসের সব ডাটা মুছে নতুন মাস শুরু করতে চান?")) {
-                if (isFirebaseConnected) {
-                    db.ref('otRecords').remove();
-                } else {
-                    records = [];
-                    saveLocalAndRender();
-                }
-            }
         }
     </script>
 </body>

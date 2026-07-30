@@ -301,6 +301,20 @@
     </div>
 
     <script>
+       // ওয়েবসাইটে ঢোকার সাথে সাথে আজকের রিয়েল-টাইম তারিখ অটো সেট হওয়ার কোড
+document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.getElementById('dateInput'); // আপনার HTML-এ তারিখের ঘরটির id অনুযায়ী 'date' নামটি চেক করে নেবেন
+
+    if (dateInput) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+
+        // YYYY-MM-DD ফরম্যাটে আজকের তারিখ সেট
+        dateInput.value = `${year}-${month}-${day}`;
+    }
+});
         // ফায়ারবেস কনফিগারেশন (আপনার নিজস্ব কী বসিয়ে নিবেন)
         const firebaseConfig = {
             apiKey: "AIzaSyASqJ5Co85WqUrdXP50-oadtGLgR0mY3oc",

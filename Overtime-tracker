@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ওভারটাইম ট্র্যাকার</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-pic {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #FF6A88;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 106, 136, 0.3);
+        }
+        .profile-pic:hover {
+            transform: scale(1.05);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .title {
+            color: #333;
+            font-size: 26px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .input-box {
+            flex: 1;
+            min-width: 150px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
+            box-sizing: border-box;
+            outline: none;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+        input:focus {
+            border-color: #FF6A88;
+            box-shadow: 0 0 10px rgba(255, 106, 136, 0.2);
+            background: #fff;
+        }
+        button {
+            background: linear-gradient(to right, #FF6A88, #FF9A9E);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(255, 106, 136, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 106, 136, 0.6);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        th {
+            background: #FF6A88;
+            color: white;
+            font-size: 16px;
+        }
+        tr:hover {
+            background-color: #fafafa;
+        }
+        .ot-highlight {
+            color: #FF6A88;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-section">
+            <img src="https://ui-avatars.com/api/?name=Hashi+Akter&background=FF6A88&color=fff&size=128" alt="Profile" class="profile-pic" id="profileImage" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
+            <input type="file" id="imageUpload" accept="image/*">
+            <div class="title">ওভারটাইম হিসাব - Hashi Akter</div>
+            <div class="subtitle">জেনারেল ডিউটি: সকাল ৮:০০ - বিকেল ৫:০০</div>
+        </div>
+
+        <div class="form-group">
+            <div class="input-box">
+                <label>তারিখ</label>
+                <input type="date" id="dateInput">
+            </div>
+            <div class="input-box">
+                <label>ইন টাইম</label>
+                <input type="time" id="inTime" value="08:00">
+            </div>
+            <div class="input-box">
+                <label>আউট টাইম</label>
+                <input type="time" id="outTime" value="17:00">
+            </div>
+        </div>
+        <button onclick="calculateOT()">হিসাব যোগ করুন</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>তারিখ</th>
+                    <th>ইন টাইম</th>
+                    <th>আউট টাইম</th>
+                    <th>ওভারটাইম</th>
+                </tr>
+            </thead>
+            <tbody id="recordTable">
+                <!-- Data will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // প্রোফাইল পিকচার আপলোডের লজিক
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('profileImage').src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // অটোমেটিক আজকের তারিখ সেট করা
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        // ওভারটাইম ক্যালকুলেট করার লজিক
+        function calculateOT() {
+            const date = document.getElementById('dateInput').value;
+            const inTime = document.getElementById('inTime').value;
+            const outTime = document.getElementById('outTime').value;
+
+            if(!date || !outTime) {
+                alert('দয়া করে সঠিক সময় সিলেক্ট করুন।');
+                return;
+            }
+
+            // বিকেল ৫:০০ (17:00) কে স্ট্যান্ডার্ড আউট টাইম ধরা হয়েছে
+            const outDate = new Date(`1970-01-01T${outTime}:00`);
+            const standardOutDate = new Date(`1970-01-01T17:00:00`);
+
+            let otHours = 0;
+            if (outDate > standardOutDate) {
+                const diffMs = outDate - standardOutDate;
+                otHours = diffMs / (1000 * 60 * 60); 
+            }
+
+            // সময়কে AM/PM ফরম্যাটে সাজানো
+            const formatTime = (time) => {
+                let [h, m] = time.split(':');
+                let ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return `${h}:${m} ${ampm}`;
+            };
+
+            // টেবিলে ডাটা দেখানো
+            const tbody = document.getElementById('recordTable');
+            const row = tbody.insertRow(0); // নতুন ডাটা উপরে দেখাবে
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${formatTime(inTime)}</td>
+                <td>${formatTime(outTime)}</td>
+                <td class="ot-highlight">${otHours > 0 ? otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
+            `;
+        }
+    </script>
+</body>
+</html>

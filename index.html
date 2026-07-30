@@ -538,14 +538,17 @@
 
     const pdfContainer = document.createElement("div");
 
-    // CSS এ Fixed Width (760px) বাদ দেওয়া হলো এবং 100% করা হলো
+    // কন্টেইনারটিকে স্ক্রিনের বাইরে (off-screen) রাখা হলো যাতে ওয়েবসাইটের ডিজাইন না ভাঙে
     pdfContainer.style.cssText = `
-        width: 100%;
+        width: 800px; /* A4 সাইজের জন্য আদর্শ উইডথ */
         padding: 20px;
         background: #fff;
         color: #333;
         font-family: Arial, sans-serif;
         box-sizing: border-box;
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
     `;
 
     let tableRows = "";
@@ -596,7 +599,6 @@
             font-size: 14px;
             word-break: break-word;
         }
-        /* সারি যাতে ভেঙে অর্ধেক অন্য পেজে না যায় */
         tr { page-break-inside: avoid; }
         
         .total {
@@ -637,25 +639,27 @@
     </div>
     `;
 
-    // html2pdf অপশন সেটআপ
+    // বডিতে যুক্ত না করলে পিসিতে সম্পূর্ণ উচ্চতা (height) মাপে না, তাই যুক্ত করা হলো
+    document.body.appendChild(pdfContainer);
+
     const opt = {
         margin: [10, 10, 10, 10], 
         filename: `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-            scale: 2, // 3 থেকে 2 করা হলো যাতে মোবাইল মেমরি ক্র্যাশ না করে
+            scale: 2, 
             useCORS: true,
-            letterRendering: true
+            scrollY: 0 // পেজ স্ক্রল করা থাকলেও যেন ডাটা না কাটে
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        
-        // "avoid-all" সরিয়ে দেওয়া হয়েছে, যেন ডাটা বেশি হলে নতুন পেইজ তৈরি হয়
         pagebreak: { mode: ['css', 'legacy'] }
     };
 
-    // DOM-এ append না করেই সরাসরি জেনারেট করা হলো (এতে মোবাইল স্ক্রিনের সাইজের প্রভাব পড়বে না)
-    html2pdf().set(opt).from(pdfContainer).save();
-}
+    html2pdf().set(opt).from(pdfContainer).save().then(() => {
+        // পিডিএফ তৈরি ও ডাউনলোড শুরু হলে কন্টেইনারটি আবার মুছে ফেলা হলো
+        document.body.removeChild(pdfContainer);
+    });
+} 
     </script>
 </body>
 </html>  

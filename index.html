@@ -40,11 +40,12 @@
             position: relative;
             display: inline-block;
         }
-        .profile-pic {
+         .profile-pic {
             width: 120px;
             height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
+            border-radius: 50%; /* ছবি গোল করার জন্য */
+            object-fit: cover; /* এই লাইনটাই আসল! ছবিকে ফ্রেমের বাইরে যেতে দেবে না */
+            object-position: center; /* ছবিটা একদম মাঝখান বরাবর ফোকাস করবে */
             border: 4px solid #FF6A88;
             cursor: pointer;
             transition: transform 0.3s ease;

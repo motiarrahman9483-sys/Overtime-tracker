@@ -132,6 +132,21 @@
             font-weight: bold;
             font-size: 16px;
         }
+        /* সর্বমোট হিসাবের বক্সের ডিজাইন */
+        .total-box {
+            margin-top: 20px;
+            background: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -172,9 +187,18 @@
                 <!-- Data will be added here -->
             </tbody>
         </table>
+
+        <!-- সর্বমোট হিসাবের বক্স -->
+        <div class="total-box">
+            <span>সর্বমোট ওভারটাইম:</span>
+            <span id="totalOtDisplay">০.০০ ঘণ্টা</span>
+        </div>
     </div>
 
     <script>
+        // সর্বমোট ওভারটাইম রাখার ভেরিয়েবল
+        let totalOvertimeHours = 0;
+
         // প্রোফাইল পিকচার আপলোডের লজিক
         document.getElementById('imageUpload').addEventListener('change', function(e) {
             const reader = new FileReader();
@@ -216,15 +240,21 @@
                 return `${h}:${m} ${ampm}`;
             };
 
-            // টেবিলে ডাটা দেখানো
+            // টেবিলে ডাটা যোগ করা
             const tbody = document.getElementById('recordTable');
-            const row = tbody.insertRow(0); // নতুন ডাটা উপরে দেখাবে
+            const row = tbody.insertRow(-1); // নতুন ডাটা নিচে নিচে যুক্ত হবে
             row.innerHTML = `
                 <td>${date}</td>
                 <td>${formatTime(inTime)}</td>
                 <td>${formatTime(outTime)}</td>
                 <td class="ot-highlight">${otHours > 0 ? otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
             `;
+
+            // সর্বমোট ওভারটাইম আপডেট করা
+            if(otHours > 0) {
+                totalOvertimeHours += otHours;
+                document.getElementById('totalOtDisplay').innerText = totalOvertimeHours.toFixed(2) + ' ঘণ্টা';
+            }
         }
     </script>
 </body>

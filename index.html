@@ -501,10 +501,34 @@
 
         // পিডিএফ ডাউনলোড ফাংশন (লিস্ট ও নিচে সর্বমোট ওভারটাইম সহ)
         function downloadPDF() {
-            if (records.length === 0) {
-                alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
-                return;
-            }
+    // যে অংশটি PDF হবে (যেমন: #pdf-area বা #report-container)
+    const element = document.getElementById('pdf-area'); 
+
+    // PDF বানানোর আগে কিছু ক্ষণস্থায়ী স্টাইল যোগ করে পুরো হাইট নিশ্চিত করা
+    const originalStyle = element.style.cssText;
+    element.style.height = 'auto';
+    element.style.overflow = 'visible';
+    element.style.padding = '20px';
+
+    const opt = {
+        margin:       [10, 10, 10, 10], // top, left, bottom, right
+        filename:     `Overtime_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true,
+            scrollY: 0,
+            windowWidth: 800 // মোবাইল ও পিসিতে সমান আউটপুট পাওয়ার জন্য নির্দিষ্ট উইডথ
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // PDF জেনারেট করা
+    html2pdf().set(opt).from(element).save().then(() => {
+        // PDF ডাউনলোড শেষে আগের স্টাইলে ফেরত যাওয়া
+        element.style.cssText = originalStyle;
+    });
+}
 
             const element = document.createElement('div');
             element.style.padding = '20px';

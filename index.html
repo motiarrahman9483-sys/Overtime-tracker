@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ওভারটাইম ট্র্যাকার</title>
+    <title>ওভারটাইম ট্র্যাকার - Hashi Akter</title>
+    <!-- Firebase SDK (গুগল ক্লাউড সিঙ্ক) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -16,21 +19,22 @@
             align-items: center;
         }
         .container {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
         .profile-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .profile-pic {
-            width: 130px;
-            height: 130px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid #FF6A88;
@@ -47,14 +51,21 @@
         .title {
             color: #333;
             font-size: 26px;
-            margin-top: 15px;
+            margin-top: 12px;
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }
         .subtitle {
-            color: #666;
+            color: #555;
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .status-badge {
+            font-size: 13px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            display: inline-block;
+            font-weight: 600;
         }
         .form-group {
             display: flex;
@@ -75,20 +86,19 @@
         input {
             width: 100%;
             padding: 12px;
-            border: 1px solid rgba(255,255,255,0.5);
-            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.9);
             border-radius: 10px;
             box-sizing: border-box;
             outline: none;
             font-size: 15px;
-            transition: 0.3s;
         }
         input:focus {
             border-color: #FF6A88;
-            box-shadow: 0 0 10px rgba(255, 106, 136, 0.2);
+            box-shadow: 0 0 10px rgba(255, 106, 136, 0.3);
             background: #fff;
         }
-        button {
+        .btn-main {
             background: linear-gradient(to right, #FF6A88, #FF9A9E);
             color: white;
             border: none;
@@ -101,28 +111,55 @@
             width: 100%;
             box-shadow: 0 5px 15px rgba(255, 106, 136, 0.4);
         }
-        button:hover {
+        .btn-main:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(255, 106, 136, 0.6);
         }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            color: white;
+            transition: 0.3s;
+            min-width: 160px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .btn-excel { background-color: #21a366; }
+        .btn-excel:hover { background-color: #177d4d; }
+        .btn-pdf { background-color: #0284c7; }
+        .btn-pdf:hover { background-color: #0369a1; }
+        .btn-clear { background-color: #ef4444; }
+        .btn-clear:hover { background-color: #dc2626; }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
+            margin-top: 25px;
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         th, td {
-            padding: 15px;
+            padding: 12px 15px;
             text-align: center;
             border-bottom: 1px solid #f0f0f0;
         }
         th {
             background: #FF6A88;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
         }
         tr:hover {
             background-color: #fafafa;
@@ -132,32 +169,54 @@
             font-weight: bold;
             font-size: 16px;
         }
-        /* সর্বমোট হিসাবের বক্সের ডিজাইন */
+        .delete-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background: #cc0000;
+        }
         .total-box {
             margin-top: 20px;
             background: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
-            padding: 15px;
-            border-radius: 10px;
+            padding: 18px;
+            border-radius: 12px;
             text-align: center;
             font-size: 20px;
             font-weight: bold;
-            color: #2c3e50;
+            color: #1a4d2e;
             box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; max-width: 100%; }
+            .form-group, .btn-main, .action-buttons, .delete-btn, input[type="file"], .status-badge { display: none !important; }
+            th { background: #333 !important; color: white !important; }
+            .total-box { border: 2px solid #333; background: #f0f0f0 !important; color: black !important; box-shadow: none; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- প্রোফাইল সেকশন -->
         <div class="profile-section">
             <img src="https://ui-avatars.com/api/?name=Hashi+Akter&background=FF6A88&color=fff&size=128" alt="Profile" class="profile-pic" id="profileImage" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
             <input type="file" id="imageUpload" accept="image/*">
             <div class="title">ওভারটাইম হিসাব - Hashi Akter</div>
-            <div class="subtitle">জেনারেল ডিউটি: সকাল ৮:০০ - বিকেল ৫:০০</div>
+            <div class="subtitle">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</div>
+            <div id="syncStatus" class="status-badge">🔄 ডাটা স্টেটাস চেক হচ্ছে...</div>
         </div>
 
+        <!-- ইনপুট ফর্ম -->
         <div class="form-group">
             <div class="input-box">
                 <label>তারিখ</label>
@@ -169,11 +228,19 @@
             </div>
             <div class="input-box">
                 <label>আউট টাইম</label>
-                <input type="time" id="outTime" value="17:00">
+                <input type="time" id="outTime" value="19:00">
             </div>
         </div>
-        <button onclick="calculateOT()">হিসাব যোগ করুন</button>
+        <button class="btn-main" onclick="calculateOT()">হিসাব যোগ করুন</button>
 
+        <!-- ডাটা ডাউনলোড বাটনগুলো -->
+        <div class="action-buttons">
+            <button class="btn-action btn-excel" onclick="exportToCSV()">📊 Excel ডাউনলোড</button>
+            <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF / প্রিন্ট করুন</button>
+            <button class="btn-action btn-clear" onclick="clearAllRecords()">🗑️ মাস রিসেট</button>
+        </div>
+
+        <!-- টেবিল লিস্ট -->
         <table>
             <thead>
                 <tr>
@@ -181,14 +248,14 @@
                     <th>ইন টাইম</th>
                     <th>আউট টাইম</th>
                     <th>ওভারটাইম</th>
+                    <th>অ্যাকশন</th>
                 </tr>
             </thead>
             <tbody id="recordTable">
-                <!-- Data will be added here -->
             </tbody>
         </table>
 
-        <!-- সর্বমোট হিসাবের বক্স -->
+        <!-- সর্বমোট হিসাব -->
         <div class="total-box">
             <span>সর্বমোট ওভারটাইম:</span>
             <span id="totalOtDisplay">০.০০ ঘণ্টা</span>
@@ -196,64 +263,194 @@
     </div>
 
     <script>
-        // সর্বমোট ওভারটাইম রাখার ভেরিয়েবল
-        let totalOvertimeHours = 0;
+        // =========================================================================
+        // ⚠️ আপনার মোবাইল এবং পিসির ডাটা এক করার জন্য নিচে Firebase Config বসাতে হবে
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
 
-        // প্রোফাইল পিকচার আপলোডের লজিক
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('profileImage').src = event.target.result;
+        let db = null;
+        let isFirebaseConnected = false;
+
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                isFirebaseConnected = true;
             }
-            reader.readAsDataURL(e.target.files[0]);
-        });
+        } catch (e) {
+            console.log("Firebase not initialized.", e);
+        }
 
-        // অটোমেটিক আজকের তারিখ সেট করা
+        let records = [];
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        // ওভারটাইম ক্যালকুলেট করার লজিক
+        const profileImage = document.getElementById('profileImage');
+        const syncStatus = document.getElementById('syncStatus');
+
+        window.addEventListener('load', () => {
+            const savedImage = localStorage.getItem('userProfilePic');
+            if (savedImage) profileImage.src = savedImage;
+
+            if (isFirebaseConnected) {
+                syncStatus.innerText = "☁️ ক্লাউড ডাটাসিঙ্ক একটিভ (মোবাইল + পিসি কানেক্টেড)";
+                syncStatus.style.backgroundColor = "#dcfce7";
+                syncStatus.style.color = "#166534";
+
+                db.ref('otRecords').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    records = data ? Object.values(data) : [];
+                    renderTable();
+                });
+            } else {
+                syncStatus.innerText = "📱 লোকাল মোড (ফায়ারবেস যুক্ত করলে পিসির সাথে সিঙ্ক হবে)";
+                syncStatus.style.backgroundColor = "#fef3c7";
+                syncStatus.style.color = "#92400e";
+                records = JSON.parse(localStorage.getItem('otRecords')) || [];
+                renderTable();
+            }
+        });
+
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    profileImage.src = event.target.result;
+                    localStorage.setItem('userProfilePic', event.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function formatTime(time) {
+            let [h, m] = time.split(':');
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m} ${ampm}`;
+        }
+
         function calculateOT() {
             const date = document.getElementById('dateInput').value;
             const inTime = document.getElementById('inTime').value;
             const outTime = document.getElementById('outTime').value;
 
             if(!date || !outTime) {
-                alert('দয়া করে সঠিক সময় সিলেক্ট করুন।');
+                alert('দয়া করে সঠিক সময় ও তারিখ দিন।');
                 return;
             }
 
-            // বিকেল ৫:০০ (17:00) কে স্ট্যান্ডার্ড আউট টাইম ধরা হয়েছে
             const outDate = new Date(`1970-01-01T${outTime}:00`);
             const standardOutDate = new Date(`1970-01-01T17:00:00`);
 
             let otHours = 0;
             if (outDate > standardOutDate) {
-                const diffMs = outDate - standardOutDate;
-                otHours = diffMs / (1000 * 60 * 60); 
+                otHours = (outDate - standardOutDate) / (1000 * 60 * 60); 
             }
 
-            // সময়কে AM/PM ফরম্যাটে সাজানো
-            const formatTime = (time) => {
-                let [h, m] = time.split(':');
-                let ampm = h >= 12 ? 'PM' : 'AM';
-                h = h % 12 || 12;
-                return `${h}:${m} ${ampm}`;
+            const recordId = Date.now().toString();
+            const newRecord = {
+                id: recordId,
+                date: date,
+                inTime: inTime,
+                outTime: outTime,
+                otHours: otHours
             };
 
-            // টেবিলে ডাটা যোগ করা
-            const tbody = document.getElementById('recordTable');
-            const row = tbody.insertRow(-1); // নতুন ডাটা নিচে নিচে যুক্ত হবে
-            row.innerHTML = `
-                <td>${date}</td>
-                <td>${formatTime(inTime)}</td>
-                <td>${formatTime(outTime)}</td>
-                <td class="ot-highlight">${otHours > 0 ? otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
-            `;
+            if (isFirebaseConnected) {
+                db.ref('otRecords/' + recordId).set(newRecord);
+            } else {
+                records.unshift(newRecord);
+                saveLocalAndRender();
+            }
+        }
 
-            // সর্বমোট ওভারটাইম আপডেট করা
-            if(otHours > 0) {
-                totalOvertimeHours += otHours;
-                document.getElementById('totalOtDisplay').innerText = totalOvertimeHours.toFixed(2) + ' ঘণ্টা';
+        function saveLocalAndRender() {
+            localStorage.setItem('otRecords', JSON.stringify(records));
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('recordTable');
+            tbody.innerHTML = '';
+            let totalOT = 0;
+
+            records.sort((a, b) => b.id - a.id);
+
+            records.forEach((item) => {
+                totalOT += item.otHours;
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${formatTime(item.inTime)}</td>
+                    <td>${formatTime(item.outTime)}</td>
+                    <td class="ot-highlight">${item.otHours > 0 ? item.otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
+                    <td><button class="delete-btn" onclick="deleteRecord('${item.id}')">মুছুন</button></td>
+                `;
+            });
+
+            document.getElementById('totalOtDisplay').innerText = totalOT.toFixed(2) + ' ঘণ্টা';
+        }
+
+        function deleteRecord(id) {
+            if (isFirebaseConnected) {
+                db.ref('otRecords/' + id).remove();
+            } else {
+                records = records.filter(item => item.id !== id);
+                saveLocalAndRender();
+            }
+        }
+
+        function exportToCSV() {
+            if (records.length === 0) {
+                alert("ডাউনলোড করার মতো কোনো ডাটা নেই!");
+                return;
+            }
+            let csvContent = "\uFEFF";
+            csvContent += "ওভারটাইম রিপোর্ট - Hashi Akter\n\n";
+            csvContent += "তারিখ,ইন টাইম,আউট টাইম,ওভারটাইম (ঘণ্টা)\n";
+
+            records.forEach(r => {
+                csvContent += `"${r.date}","${formatTime(r.inTime)}","${formatTime(r.outTime)}","${r.otHours.toFixed(2)}"\n`;
+            });
+
+            let totalOT = records.reduce((sum, r) => sum + r.otHours, 0);
+            csvContent += `\n"সর্বমোট ওভারটাইম","","","${totalOT.toFixed(2)} ঘণ্টা"\n`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Overtime_Report_${new Date().toISOString().slice(0,7)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadPDF() {
+            if (records.length === 0) {
+                alert("প্রিন্ট বা পিডিএফ করার মতো কোনো ডাটা নেই!");
+                return;
+            }
+            window.print();
+        }
+
+        function clearAllRecords() {
+            if (records.length === 0) return;
+            if (confirm("আপনি কি নিশ্চিত যে পুরো মাসের সব ডাটা মুছে নতুন মাস শুরু করতে চান?")) {
+                if (isFirebaseConnected) {
+                    db.ref('otRecords').remove();
+                } else {
+                    records = [];
+                    saveLocalAndRender();
+                }
             }
         }
     </script>

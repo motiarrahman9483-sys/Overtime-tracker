@@ -530,89 +530,195 @@
             if (totalOtDisplay) totalOtDisplay.innerText = totalOT.toFixed(2) + ' ঘণ্টা';
         }
         
-        // পিডিএফ ডাউনলোড (পিসি এবং মোবাইল দুই জায়গাতেই পারফেক্ট দেখাবে)
-function downloadPDF() {
+     function downloadPDF() {
     if (records.length === 0) {
         alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
         return;
     }
 
-    // সরাসরি একটি এলিমেন্ট তৈরি করছি (পেজে যুক্ত করার দরকার নেই)
-    const element = document.createElement('div');
-    // ফিক্সড উইডথ যেন মোবাইল ও পিসিতে ডিজাইন না ভাঙে
-    element.style.width = '800px'; 
-    element.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    element.style.color = '#333';
-    element.style.background = '#fff';
+    const pdfContainer = document.createElement("div");
 
-    let tableRows = '';
+    pdfContainer.style.cssText = `
+        width:760px;
+        margin:0 auto;
+        padding:20px;
+        background:#fff;
+        color:#333;
+        font-family:Arial,sans-serif;
+        box-sizing:border-box;
+    `;
+
+    let tableRows = "";
     let totalOT = 0;
-    
-    const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    sortedRecords.forEach(r => {
+    const sorted = [...records].sort(
+        (a, b) => new Date(b.date) - new Date(a.date)
+    );
+
+    sorted.forEach(r => {
+
         let ot = calculateOtHours(r.outTime);
-        if (!isNaN(ot)) {
-            totalOT += ot;
-        }
-        
-        // 'page-break-inside: avoid' দেওয়া হয়েছে যেন ডাটা বেশি হলে টেবিলের রো অর্ধেক কেটে না যায়
+
+        if (!isNaN(ot)) totalOT += ot;
+
         tableRows += `
-            <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
-                <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${r.date}</td>
-                <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${formatTime(r.inTime)}</td>
-                <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${formatTime(r.outTime)}</td>
-                <td style="padding: 12px; text-align: center; color: #FF6A88; font-weight: bold; border: 1px solid #ddd;">${ot > 0 ? ot.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
-            </tr>
+        <tr>
+            <td>${r.date}</td>
+            <td>${formatTime(r.inTime)}</td>
+            <td>${formatTime(r.outTime)}</td>
+            <td style="color:#FF6A88;font-weight:bold">
+                ${ot>0 ? ot.toFixed(2)+" ঘণ্টা":"নাই"}
+            </td>
+        </tr>
         `;
     });
 
-    element.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #FF6A88; padding-bottom: 15px;">
-            <h2 style="color: #FF6A88; margin: 0 0 5px 0; font-size: 26px;">ওভারটাইম সামারি রিপোর্ট</h2>
-            <h3 style="margin: 0 0 5px 0; color: #333; font-size: 20px;">Hashi Akter</h3>
-            <p style="margin: 0; color: #666; font-size: 15px;">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
-        </div>
+    pdfContainer.innerHTML = `
+    <style>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 16px;">
-            <thead>
-                <tr style="background-color: #FF6A88; color: white;">
-                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">তারিখ</th>
-                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ইন টাইম</th>
-                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">আউট টাইম</th>
-                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ওভারটাইম</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tableRows}
-            </tbody>
-        </table>
+    *{
+        box-sizing:border-box;
+    }
 
-        <div style="background: #e6f4ea; border: 2px solid #34a853; padding: 15px; border-radius: 8px; text-align: right; font-size: 20px; font-weight: bold; color: #137333; page-break-inside: avoid;">
-            সর্বমোট ওভারটাইম: ${totalOT.toFixed(2)} ঘণ্টা
-        </div>
+    h2{
+        color:#FF6A88;
+        margin:0;
+        font-size:28px;
+    }
+
+    h3{
+        margin:8px 0;
+        font-size:22px;
+    }
+
+    p{
+        margin:0;
+    }
+
+    table{
+        width:100%;
+        border-collapse:collapse;
+        margin-top:25px;
+        table-layout:fixed;
+    }
+
+    th{
+        background:#FF6A88;
+        color:white;
+        padding:12px;
+        border:1px solid #ddd;
+    }
+
+    td{
+        padding:12px;
+        text-align:center;
+        border:1px solid #ddd;
+        word-break:break-word;
+    }
+
+    tr{
+        page-break-inside:avoid;
+    }
+
+    .total{
+        margin-top:20px;
+        background:#E8F5E9;
+        border:2px solid #4CAF50;
+        padding:15px;
+        font-size:20px;
+        font-weight:bold;
+        text-align:right;
+        border-radius:8px;
+        page-break-inside:avoid;
+    }
+
+    </style>
+
+    <div style="text-align:center;border-bottom:3px solid #FF6A88;padding-bottom:15px">
+
+        <h2>ওভারটাইম সামারি রিপোর্ট</h2>
+
+        <h3>Hashi Akter</h3>
+
+        <p>জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
+
+    </div>
+
+    <table>
+
+        <thead>
+
+        <tr>
+
+            <th>তারিখ</th>
+
+            <th>ইন টাইম</th>
+
+            <th>আউট টাইম</th>
+
+            <th>ওভারটাইম</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        ${tableRows}
+
+        </tbody>
+
+    </table>
+
+    <div class="total">
+
+        সর্বমোট ওভারটাইম : ${totalOT.toFixed(2)} ঘণ্টা
+
+    </div>
+
     `;
 
-    const opt = {
-        // [Top, Left, Bottom, Right] margin in mm - এটি ডানদিক কেটে যাওয়া বন্ধ করবে
-        margin:       [10, 10, 10, 10], 
-        filename:     `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  { 
-            scale: 2, 
-            useCORS: true, 
-            windowWidth: 800 // সবচেয়ে গুরুত্বপূর্ণ: মোবাইলকেও পিসির সাইজে রেন্ডার করতে বাধ্য করবে
-        }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
-    };
+    document.body.appendChild(pdfContainer);
 
-    html2pdf().set(opt).from(element).save();
-}
+    html2pdf()
+    .set({
 
-function printReport() {
-    window.print();
-}
+        margin:[10,10,10,10],
+
+        filename:`Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+
+        image:{
+            type:"jpeg",
+            quality:1
+        },
+
+        html2canvas:{
+            scale:3,
+            useCORS:true,
+            scrollX:0,
+            scrollY:0,
+            windowWidth:760,
+            windowHeight:pdfContainer.scrollHeight
+        },
+
+        jsPDF:{
+            unit:"mm",
+            format:"a4",
+            orientation:"portrait"
+        },
+
+        pagebreak:{
+            mode:["avoid-all","css","legacy"]
+        }
+
+    })
+    .from(pdfContainer)
+    .save()
+    .then(()=>{
+        document.body.removeChild(pdfContainer);
+    });
+
+}    
     </script>
 </body>
 </html>  

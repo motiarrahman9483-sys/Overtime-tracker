@@ -301,21 +301,8 @@
     </div>
 
     <script>
-       // ওয়েবসাইটে ঢোকার সাথে সাথে আজকের রিয়েল-টাইম তারিখ অটো সেট হওয়ার কোড
-document.addEventListener("DOMContentLoaded", function () {
-    const dateInput = document.getElementById('dateInput'); // আপনার HTML-এ তারিখের ঘরটির id অনুযায়ী 'date' নামটি চেক করে নেবেন
-
-    if (dateInput) {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-
-        // YYYY-MM-DD ফরম্যাটে আজকের তারিখ সেট
-        dateInput.value = `${year}-${month}-${day}`;
-    }
-});
-        // ফায়ারবেস কনফিগারেশন (আপনার নিজস্ব কী বসিয়ে নিবেন)
+    <script>
+        // ১. ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyASqJ5Co85WqUrdXP50-oadtGLgR0mY3oc",
             authDomain: "overtime-tracker-9be53.firebaseapp.com",
@@ -342,12 +329,27 @@ document.addEventListener("DOMContentLoaded", function () {
         let records = [];
         let editingId = null;
 
-        document.getElementById('dateInput').valueAsDate = new Date();
+        // অটোমেটিক রিয়েল-টাইম কারেন্ট তারিখ সেট করা
+        function setTodayDate() {
+            const dateInput = document.getElementById('date') || document.getElementById('dateInput');
+            if (dateInput) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+            }
+        }
+
         const profileImage = document.getElementById('profileImage');
 
         window.addEventListener('load', () => {
-            const savedImage = localStorage.getItem('userProfilePic');
-            if (savedImage) profileImage.src = savedImage;
+            setTodayDate();
+
+            if (profileImage) {
+                const savedImage = localStorage.getItem('userProfilePic');
+                if (savedImage) profileImage.src = savedImage;
+            }
 
             if (isFirebaseConnected) {
                 db.ref('otRecords').on('value', (snapshot) => {
@@ -361,20 +363,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // প্রোফাইল পিকচার আপডেট ও সেভ
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    profileImage.src = event.target.result;
-                    localStorage.setItem('userProfilePic', event.target.result);
+        const imageUploadBtn = document.getElementById('imageUpload');
+        if (imageUploadBtn) {
+            imageUploadBtn.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        if (profileImage) profileImage.src = event.target.result;
+                        localStorage.setItem('userProfilePic', event.target.result);
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
-            }
-        });
+            });
+        }
 
-        // নিখুঁত গাণিতিক ওভারটাইম হিসাব ফাংশন
+        // ওভারটাইম গণনা
         function calculateOtHours(outTimeStr) {
             if (!outTimeStr) return 0;
             const parts = outTimeStr.split(':');
@@ -383,10 +387,10 @@ document.addEventListener("DOMContentLoaded", function () {
             let outM = parseInt(parts[1], 10);
             
             let totalOutMinutes = outH * 60 + outM;
-            let standardOutMinutes = 17 * 60; // বিকেল ৫:০০ = ১০২০ মিনিট
+            let standardOutMinutes = 17 * 60; // বিকেল ৫:০০
 
             if (outH < 6) {
-                totalOutMinutes += 24 * 60; // মধ্যরাতের পরের ডিউটি
+                totalOutMinutes += 24 * 60; 
             }
 
             if (totalOutMinutes > standardOutMinutes) {
@@ -403,10 +407,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return `${h}:${m} ${ampm}`;
         }
 
+        // হিসাব যোগ / আপডেট করার ফাংশন
         function handleSubmit() {
-            const date = document.getElementById('dateInput').value;
-            const inTime = document.getElementById('inTime').value;
-            const outTime = document.getElementById('outTime').value;
+            const dateInput = document.getElementById('date') || document.getElementById('dateInput');
+            const inTimeInput = document.getElementById('inTime');
+            const outTimeInput = document.getElementById('outTime');
+
+            const date = dateInput ? dateInput.value : '';
+            const inTime = inTimeInput ? inTimeInput.value : '';
+            const outTime = outTimeInput ? outTimeInput.value : '';
 
             if(!date || !outTime) {
                 alert('দয়া করে সঠিক সময় ও তারিখ দিন।');
@@ -454,33 +463,40 @@ document.addEventListener("DOMContentLoaded", function () {
             const item = records.find(r => r.id === id);
             if (!item) return;
 
-            document.getElementById('dateInput').value = item.date;
-            document.getElementById('inTime').value = item.inTime;
-            document.getElementById('outTime').value = item.outTime;
+            const dateInput = document.getElementById('date') || document.getElementById('dateInput');
+            if (dateInput) dateInput.value = item.date;
+            if (document.getElementById('inTime')) document.getElementById('inTime').value = item.inTime;
+            if (document.getElementById('outTime')) document.getElementById('outTime').value = item.outTime;
 
             editingId = id;
 
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerText = "হিসাব আপডেট করুন";
-            submitBtn.style.background = "linear-gradient(to right, #43e97b, #38f9d7)";
-            submitBtn.style.color = "#1a4d2e";
+            if (submitBtn) {
+                submitBtn.innerText = "হিসাব আপডেট করুন";
+                submitBtn.style.background = "linear-gradient(to right, #43e97b, #38f9d7)";
+                submitBtn.style.color = "#1a4d2e";
+            }
 
-            document.getElementById('cancelBtn').style.display = "block";
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) cancelBtn.style.display = "block";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelEdit() {
             editingId = null;
-            document.getElementById('dateInput').valueAsDate = new Date();
-            document.getElementById('inTime').value = "08:00";
-            document.getElementById('outTime').value = "19:00";
+            setTodayDate();
+            if (document.getElementById('inTime')) document.getElementById('inTime').value = "08:00";
+            if (document.getElementById('outTime')) document.getElementById('outTime').value = "19:00";
 
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerText = "হিসাব যোগ করুন";
-            submitBtn.style.background = "linear-gradient(to right, #FF6A88, #FF9A9E)";
-            submitBtn.style.color = "white";
+            if (submitBtn) {
+                submitBtn.innerText = "হিসাব যোগ করুন";
+                submitBtn.style.background = "linear-gradient(to right, #FF6A88, #FF9A9E)";
+                submitBtn.style.color = "white";
+            }
 
-            document.getElementById('cancelBtn').style.display = "none";
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) cancelBtn.style.display = "none";
         }
 
         function saveLocalAndRender() {
@@ -490,6 +506,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function renderTable() {
             const tbody = document.getElementById('recordTable');
+            if (!tbody) return;
             tbody.innerHTML = '';
             let totalOT = 0;
 
@@ -510,39 +527,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
             });
 
-            document.getElementById('totalOtDisplay').innerText = totalOT.toFixed(2) + ' ঘণ্টা';
+            const totalOtDisplay = document.getElementById('totalOtDisplay');
+            if (totalOtDisplay) totalOtDisplay.innerText = totalOT.toFixed(2) + ' ঘণ্টা';
         }
 
-        // পিডিএফ ডাউনলোড ফাংশন (লিস্ট ও নিচে সর্বমোট ওভারটাইম সহ)
+        // PDF ডাউনলোড
         function downloadPDF() {
-    // যে অংশটি PDF হবে (যেমন: #pdf-area বা #report-container)
-    const element = document.getElementById('pdf-area'); 
-
-    // PDF বানানোর আগে কিছু ক্ষণস্থায়ী স্টাইল যোগ করে পুরো হাইট নিশ্চিত করা
-    const originalStyle = element.style.cssText;
-    element.style.height = 'auto';
-    element.style.overflow = 'visible';
-    element.style.padding = '20px';
-
-    const opt = {
-        margin:       [10, 10, 10, 10], // top, left, bottom, right
-        filename:     `Overtime_Report_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-            scale: 2, 
-            useCORS: true,
-            scrollY: 0,
-            windowWidth: 800 // মোবাইল ও পিসিতে সমান আউটপুট পাওয়ার জন্য নির্দিষ্ট উইডথ
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // PDF জেনারেট করা
-    html2pdf().set(opt).from(element).save().then(() => {
-        // PDF ডাউনলোড শেষে আগের স্টাইলে ফেরত যাওয়া
-        element.style.cssText = originalStyle;
-    });
-}
+            if (records.length === 0) {
+                alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
+                return;
+            }
 
             const element = document.createElement('div');
             element.style.padding = '20px';
@@ -597,14 +591,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 margin:       10,
                 filename:     `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save();
         }
 
-        // প্রিন্ট ফাংশন
         function printReport() {
             window.print();
         }

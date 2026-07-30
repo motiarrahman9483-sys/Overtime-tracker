@@ -529,31 +529,16 @@
             const totalOtDisplay = document.getElementById('totalOtDisplay');
             if (totalOtDisplay) totalOtDisplay.innerText = totalOT.toFixed(2) + ' ঘণ্টা';
         }
-        
-      function downloadPDF() {
+     function downloadPDF() {
     if (records.length === 0) {
         alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
         return;
     }
 
-    const pdfContainer = document.createElement("div");
-
-    // কন্টেইনারটিকে স্ক্রিনের বাইরে (off-screen) রাখা হলো যাতে ওয়েবসাইটের ডিজাইন না ভাঙে
-    pdfContainer.style.cssText = `
-        width: 800px; /* A4 সাইজের জন্য আদর্শ উইডথ */
-        padding: 20px;
-        background: #fff;
-        color: #333;
-        font-family: Arial, sans-serif;
-        box-sizing: border-box;
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    `;
-
     let tableRows = "";
     let totalOT = 0;
 
+    // তারিখ অনুযায়ী সাজানো
     const sorted = [...records].sort(
         (a, b) => new Date(b.date) - new Date(a.date)
     );
@@ -567,42 +552,55 @@
             <td>${r.date}</td>
             <td>${formatTime(r.inTime)}</td>
             <td>${formatTime(r.outTime)}</td>
-            <td style="color:#FF6A88;font-weight:bold">
+            <td style="color:#FF6A88; font-weight:bold;">
                 ${ot > 0 ? ot.toFixed(2) + " ঘণ্টা" : "নাই"}
             </td>
         </tr>
         `;
     });
 
-    pdfContainer.innerHTML = `
+    // পিডিএফ-এর জন্য একটি কাস্টম HTML ডিজাইন তৈরি (যাতে বডিতে Append করার ঝামেলাই না থাকে)
+    const htmlContent = `
     <style>
-        * { box-sizing: border-box; }
-        h2 { color: #FF6A88; margin: 0; font-size: 24px; }
-        h3 { margin: 8px 0; font-size: 18px; }
-        p { margin: 0; font-size: 14px; color: #555; }
-        table {
+        .pdf-wrapper {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            background: #fff;
+            width: 100%;
+        }
+        .pdf-header {
+            text-align: center;
+            border-bottom: 2px solid #FF6A88;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .pdf-header h2 { color: #FF6A88; margin: 0; font-size: 26px; }
+        .pdf-header h3 { margin: 10px 0; font-size: 20px; }
+        .pdf-header p { margin: 0; font-size: 16px; color: #555; }
+        
+        .pdf-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-bottom: 20px;
         }
-        th {
+        .pdf-table th {
             background: #FF6A88;
             color: white;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
-            font-size: 14px;
+            font-size: 15px;
         }
-        td {
-            padding: 10px;
+        .pdf-table td {
+            padding: 12px;
             text-align: center;
             border: 1px solid #ddd;
-            font-size: 14px;
-            word-break: break-word;
+            font-size: 15px;
         }
-        tr { page-break-inside: avoid; }
+        /* পেজ ব্রেক ফিক্স */
+        .pdf-table tr { page-break-inside: avoid; }
         
-        .total {
-            margin-top: 20px;
+        .pdf-total {
             background: #E8F5E9;
             border: 2px solid #4CAF50;
             padding: 15px;
@@ -614,52 +612,49 @@
         }
     </style>
 
-    <div style="text-align:center; border-bottom: 2px solid #FF6A88; padding-bottom: 10px;">
-        <h2>ওভারটাইম সামারি রিপোর্ট</h2>
-        <h3>Hashi Akter</h3>
-        <p>জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
-    </div>
+    <div class="pdf-wrapper">
+        <div class="pdf-header">
+            <h2>ওভারটাইম সামারি রিপোর্ট</h2>
+            <h3>Hashi Akter</h3>
+            <p>জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>তারিখ</th>
-                <th>ইন টাইম</th>
-                <th>আউট টাইম</th>
-                <th>ওভারটাইম</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${tableRows}
-        </tbody>
-    </table>
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>তারিখ</th>
+                    <th>ইন টাইম</th>
+                    <th>আউট টাইম</th>
+                    <th>ওভারটাইম</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
 
-    <div class="total">
-        সর্বমোট ওভারটাইম : ${totalOT.toFixed(2)} ঘণ্টা
+        <div class="pdf-total">
+            সর্বমোট ওভারটাইম : ${totalOT.toFixed(2)} ঘণ্টা
+        </div>
     </div>
     `;
 
-    // বডিতে যুক্ত না করলে পিসিতে সম্পূর্ণ উচ্চতা (height) মাপে না, তাই যুক্ত করা হলো
-    document.body.appendChild(pdfContainer);
-
+    // অপশন সেটআপ
     const opt = {
         margin: [10, 10, 10, 10], 
         filename: `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
             scale: 2, 
-            useCORS: true,
-            scrollY: 0 // পেজ স্ক্রল করা থাকলেও যেন ডাটা না কাটে
+            useCORS: true
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(pdfContainer).save().then(() => {
-        // পিডিএফ তৈরি ও ডাউনলোড শুরু হলে কন্টেইনারটি আবার মুছে ফেলা হলো
-        document.body.removeChild(pdfContainer);
-    });
-} 
+    // সরাসরি HTML string থেকে জেনারেট করা হচ্ছে, এতে কোনো ডিজাইন ভাঙ্গবে না বা ব্ল্যাঙ্ক দেখাবে না
+    html2pdf().set(opt).from(htmlContent).save();
+}   
+       
     </script>
 </body>
 </html>  

@@ -530,7 +530,7 @@
             if (totalOtDisplay) totalOtDisplay.innerText = totalOT.toFixed(2) + ' ঘণ্টা';
         }
         
-// পিডিএফ ডাউনলোড (পিসি এবং মোবাইল দুই জায়গাতেই পারফেক্ট দেখাবে)
+        // পিডিএফ ডাউনলোড (পিসি এবং মোবাইল দুই জায়গাতেই পারফেক্ট দেখাবে)
         function downloadPDF() {
             if (records.length === 0) {
                 alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
@@ -601,69 +601,10 @@
             html2pdf().set(opt).from(element).save();
         }
 
-            const element = document.createElement('div');
-            element.style.padding = '20px';
-            element.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-            element.style.color = '#333';
-
-            let tableRows = '';
-            let totalOT = 0;
-            
-            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            sortedRecords.forEach(r => {
-                let ot = calculateOtHours(r.outTime);
-                totalOT += ot;
-                tableRows += `
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px; text-align: center;">${r.date}</td>
-                        <td style="padding: 10px; text-align: center;">${formatTime(r.inTime)}</td>
-                        <td style="padding: 10px; text-align: center;">${formatTime(r.outTime)}</td>
-                        <td style="padding: 10px; text-align: center; color: #FF6A88; font-weight: bold;">${ot > 0 ? ot.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
-                    </tr>
-                `;
-            });
-
-            element.innerHTML = `
-                <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #FF6A88; padding-bottom: 15px;">
-                    <h2 style="color: #FF6A88; margin: 0 0 5px 0; font-size: 24px;">ওভারটাইম সামারি রিপোর্ট</h2>
-                    <h3 style="margin: 0 0 5px 0; color: #333; font-size: 18px;">Hashi Akter</h3>
-                    <p style="margin: 0; color: #666; font-size: 13px;">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
-                </div>
-
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
-                    <thead>
-                        <tr style="background-color: #FF6A88; color: white;">
-                            <th style="padding: 10px; text-align: center;">তারিখ</th>
-                            <th style="padding: 10px; text-align: center;">ইন টাইম</th>
-                            <th style="padding: 10px; text-align: center;">আউট টাইম</th>
-                            <th style="padding: 10px; text-align: center;">ওভারটাইম</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows}
-                    </tbody>
-                </table>
-
-                <div style="background: #e6f4ea; border: 2px solid #34a853; padding: 15px; border-radius: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #137333;">
-                    সর্বমোট ওভারটাইম: ${totalOT.toFixed(2)} ঘণ্টা
-                </div>
-            `;
-
-            const opt = {
-                margin:       10,
-                filename:     `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save();
-        }
-
         function printReport() {
             window.print();
         }
     </script>
 </body>
 </html>
+ 

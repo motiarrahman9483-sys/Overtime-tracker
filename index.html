@@ -537,11 +537,10 @@ function downloadPDF() {
         return;
     }
 
+    // সরাসরি একটি এলিমেন্ট তৈরি করছি (পেজে যুক্ত করার দরকার নেই)
     const element = document.createElement('div');
-    // পিসি এবং মোবাইলে যেন একই সাইজ থাকে তার জন্য A4 সাইজের ফিক্সড উইডথ দেওয়া হলো
-    element.style.width = '794px'; 
-    element.style.padding = '30px';
-    element.style.boxSizing = 'border-box';
+    // ফিক্সড উইডথ যেন মোবাইল ও পিসিতে ডিজাইন না ভাঙে
+    element.style.width = '800px'; 
     element.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     element.style.color = '#333';
     element.style.background = '#fff';
@@ -553,13 +552,13 @@ function downloadPDF() {
 
     sortedRecords.forEach(r => {
         let ot = calculateOtHours(r.outTime);
-        // যদি ot সঠিক সংখ্যা হয় তবেই যোগ হবে
         if (!isNaN(ot)) {
             totalOT += ot;
         }
         
+        // 'page-break-inside: avoid' দেওয়া হয়েছে যেন ডাটা বেশি হলে টেবিলের রো অর্ধেক কেটে না যায়
         tableRows += `
-            <tr style="border-bottom: 1px solid #ddd;">
+            <tr style="border-bottom: 1px solid #ddd; page-break-inside: avoid;">
                 <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${r.date}</td>
                 <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${formatTime(r.inTime)}</td>
                 <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${formatTime(r.outTime)}</td>
@@ -569,41 +568,43 @@ function downloadPDF() {
     });
 
     element.innerHTML = `
-        <div style="padding-bottom: 20px;">
-            <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #FF6A88; padding-bottom: 15px;">
-                <h2 style="color: #FF6A88; margin: 0 0 5px 0; font-size: 26px;">ওভারটাইম সামারি রিপোর্ট</h2>
-                <h3 style="margin: 0 0 5px 0; color: #333; font-size: 20px;">Hashi Akter</h3>
-                <p style="margin: 0; color: #666; font-size: 15px;">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
-            </div>
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #FF6A88; padding-bottom: 15px;">
+            <h2 style="color: #FF6A88; margin: 0 0 5px 0; font-size: 26px;">ওভারটাইম সামারি রিপোর্ট</h2>
+            <h3 style="margin: 0 0 5px 0; color: #333; font-size: 20px;">Hashi Akter</h3>
+            <p style="margin: 0; color: #666; font-size: 15px;">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</p>
+        </div>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 16px;">
-                <thead>
-                    <tr style="background-color: #FF6A88; color: white;">
-                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">তারিখ</th>
-                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ইন টাইম</th>
-                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">আউট টাইম</th>
-                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ওভারটাইম</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableRows}
-                </tbody>
-            </table>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 16px;">
+            <thead>
+                <tr style="background-color: #FF6A88; color: white;">
+                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">তারিখ</th>
+                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ইন টাইম</th>
+                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">আউট টাইম</th>
+                    <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ওভারটাইম</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
 
-            <!-- page-break-inside: avoid; দেওয়া হয়েছে যেন এটি মাঝখান থেকে না কাটে -->
-            <div style="background: #e6f4ea; border: 2px solid #34a853; padding: 15px; border-radius: 10px; text-align: right; font-size: 20px; font-weight: bold; color: #137333; page-break-inside: avoid; display: block;">
-                সর্বমোট ওভারটাইম: ${totalOT.toFixed(2)} ঘণ্টা
-            </div>
+        <div style="background: #e6f4ea; border: 2px solid #34a853; padding: 15px; border-radius: 8px; text-align: right; font-size: 20px; font-weight: bold; color: #137333; page-break-inside: avoid;">
+            সর্বমোট ওভারটাইম: ${totalOT.toFixed(2)} ঘণ্টা
         </div>
     `;
 
     const opt = {
-        margin:       10,
+        // [Top, Left, Bottom, Right] margin in mm - এটি ডানদিক কেটে যাওয়া বন্ধ করবে
+        margin:       [10, 10, 10, 10], 
         filename:     `Overtime_Report_${new Date().toISOString().slice(0,10)}.pdf`,
         image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  { scale: 2, useCORS: true }, 
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            windowWidth: 800 // সবচেয়ে গুরুত্বপূর্ণ: মোবাইলকেও পিসির সাইজে রেন্ডার করতে বাধ্য করবে
+        }, 
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] } // এই অংশটি টোটাল বক্স কেটে যাওয়া বন্ধ করবে
+        pagebreak:    { mode: ['css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save();

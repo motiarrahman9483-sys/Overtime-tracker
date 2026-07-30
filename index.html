@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <!-- html2pdf.js (ডাইরেক্ট সুন্দর PDF ডাউনলোডের জন্য) -->
+    <!-- html2pdf.js (ডাইরেক্ট PDF ডাউনলোডের জন্য) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -23,7 +23,7 @@
             align-items: center;
         }
         .container {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 30px;
@@ -35,6 +35,10 @@
         .profile-section {
             text-align: center;
             margin-bottom: 25px;
+        }
+        .profile-pic-wrapper {
+            position: relative;
+            display: inline-block;
         }
         .profile-pic {
             width: 120px;
@@ -48,6 +52,22 @@
         }
         .profile-pic:hover {
             transform: scale(1.05);
+        }
+        .upload-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #FF6A88;
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         input[type="file"] {
             display: none;
@@ -83,8 +103,8 @@
         input {
             width: 100%;
             padding: 12px;
-            border: 1px solid rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.95);
             border-radius: 10px;
             box-sizing: border-box;
             outline: none;
@@ -125,29 +145,34 @@
             display: none;
         }
 
+        /* অ্যাকশন বাটনসমূহ (PDF ও প্রিন্ট) */
         .action-buttons {
             display: flex;
-            gap: 12px;
+            gap: 15px;
             margin-top: 20px;
             flex-wrap: wrap;
         }
         .btn-action {
             flex: 1;
-            padding: 12px 15px;
+            padding: 14px 18px;
             border-radius: 10px;
             border: none;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
             color: white;
             transition: 0.3s;
             min-width: 160px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-excel { background-color: #21a366; }
-        .btn-excel:hover { background-color: #177d4d; }
         .btn-pdf { background-color: #0284c7; }
-        .btn-pdf:hover { background-color: #0369a1; }
+        .btn-pdf:hover { background-color: #0369a1; transform: translateY(-2px); }
+        .btn-print { background-color: #4b5563; }
+        .btn-print:hover { background-color: #374151; transform: translateY(-2px); }
 
         table {
             width: 100%;
@@ -193,7 +218,7 @@
         .total-box {
             margin-top: 20px;
             background: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
-            padding: 18px;
+            padding: 18px 25px;
             border-radius: 12px;
             text-align: center;
             font-size: 20px;
@@ -204,13 +229,26 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* প্রিন্ট মিডিয়া স্টাইল */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+            .form-group, .btn-main, .btn-cancel, .action-buttons, .edit-btn, th:nth-child(5), td:nth-child(5) { display: none !important; }
+            .upload-icon { display: none; }
+            table { border: 1px solid #ccc; }
+            th, td { border: 1px solid #ddd; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- প্রোফাইল সেকশন -->
         <div class="profile-section">
-            <img src="https://ui-avatars.com/api/?name=Hashi+Akter&background=FF6A88&color=fff&size=128" alt="Profile" class="profile-pic" id="profileImage" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
+            <div class="profile-pic-wrapper" onclick="document.getElementById('imageUpload').click()" title="ছবি পরিবর্তন করতে ক্লিক করুন">
+                <img src="https://ui-avatars.com/api/?name=Hashi+Akter&background=FF6A88&color=fff&size=128" alt="Profile" class="profile-pic" id="profileImage">
+                <div class="upload-icon">📷</div>
+            </div>
             <input type="file" id="imageUpload" accept="image/*">
             <div class="title">ওভারটাইম হিসাব - Hashi Akter</div>
             <div class="subtitle">জেনারেল ডিউটি: সকাল ০৮:০০ - বিকেল ০৫:০০</div>
@@ -234,10 +272,10 @@
         <button id="submitBtn" class="btn-main" onclick="handleSubmit()">হিসাব যোগ করুন</button>
         <button id="cancelBtn" class="btn-cancel" onclick="cancelEdit()">এডিট বাতিল করুন</button>
 
-        <!-- ডাটা ডাউনলোড বাটনগুলো -->
+        <!-- অ্যাকশন বাটনসমূহ (PDF ও প্রিন্ট) -->
         <div class="action-buttons">
-            <button class="btn-action btn-excel" onclick="exportToCSV()">📊 Excel ডাউনলোড</button>
             <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF ডাউনলোড</button>
+            <button class="btn-action btn-print" onclick="printReport()">🖨️ প্রিন্ট করুন</button>
         </div>
 
         <!-- টেবিল লিস্ট -->
@@ -263,6 +301,7 @@
     </div>
 
     <script>
+        // ফায়ারবেস কনফিগারেশন (আপনার নিজস্ব কী বসিয়ে নিবেন)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -283,7 +322,7 @@
                 isFirebaseConnected = true;
             }
         } catch (e) {
-            console.log("Firebase status error", e);
+            console.log("Firebase Connection Status:", e);
         }
 
         let records = [];
@@ -308,6 +347,7 @@
             }
         });
 
+        // প্রোফাইল পিকচার আপডেট ও সেভ
         document.getElementById('imageUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -319,6 +359,27 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        // নিখুঁত গাণিতিক ওভারটাইম হিসাব ফাংশন
+        function calculateOtHours(outTimeStr) {
+            if (!outTimeStr) return 0;
+            const parts = outTimeStr.split(':');
+            if (parts.length < 2) return 0;
+            let outH = parseInt(parts[0], 10);
+            let outM = parseInt(parts[1], 10);
+            
+            let totalOutMinutes = outH * 60 + outM;
+            let standardOutMinutes = 17 * 60; // বিকেল ৫:০০ = ১০২০ মিনিট
+
+            if (outH < 6) {
+                totalOutMinutes += 24 * 60; // মধ্যরাতের পরের ডিউটি
+            }
+
+            if (totalOutMinutes > standardOutMinutes) {
+                return (totalOutMinutes - standardOutMinutes) / 60;
+            }
+            return 0;
+        }
 
         function formatTime(time) {
             if(!time) return "";
@@ -338,13 +399,7 @@
                 return;
             }
 
-            const outDate = new Date(`1970-01-01T${outTime}:00`);
-            const standardOutDate = new Date(`1970-01-01T17:00:00`);
-
-            let otHours = 0;
-            if (outDate > standardOutDate) {
-                otHours = (outDate - standardOutDate) / (1000 * 60 * 60); 
-            }
+            const otHours = calculateOtHours(outTime);
 
             if (editingId) {
                 if (isFirebaseConnected) {
@@ -427,13 +482,16 @@
             records.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             records.forEach((item) => {
-                totalOT += item.otHours;
+                let ot = calculateOtHours(item.outTime);
+                item.otHours = ot;
+                totalOT += ot;
+
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${item.date}</td>
                     <td>${formatTime(item.inTime)}</td>
                     <td>${formatTime(item.outTime)}</td>
-                    <td class="ot-highlight">${item.otHours > 0 ? item.otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
+                    <td class="ot-highlight">${ot > 0 ? ot.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
                     <td><button class="edit-btn" onclick="editRecord('${item.id}')">✏️ এডিট</button></td>
                 `;
             });
@@ -441,33 +499,7 @@
             document.getElementById('totalOtDisplay').innerText = totalOT.toFixed(2) + ' ঘণ্টা';
         }
 
-        function exportToCSV() {
-            if (records.length === 0) {
-                alert("ডাউনলোড করার মতো কোনো ডাটা নেই!");
-                return;
-            }
-            let csvContent = "\uFEFF";
-            csvContent += "ওভারটাইম রিপোর্ট - Hashi Akter\n\n";
-            csvContent += "তারিখ,ইন টাইম,আউট টাইম,ওভারটাইম (ঘণ্টা)\n";
-
-            records.forEach(r => {
-                csvContent += `"${r.date}","${formatTime(r.inTime)}","${formatTime(r.outTime)}","${r.otHours.toFixed(2)}"\n`;
-            });
-
-            let totalOT = records.reduce((sum, r) => sum + r.otHours, 0);
-            csvContent += `\n"সর্বমোট ওভারটাইম","","","${totalOT.toFixed(2)} ঘণ্টা"\n`;
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Overtime_Report_${new Date().toISOString().slice(0,7)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // নিখুঁত পিডিএফ ডাউনলোড ফাংশন (যা সরাসরি সাজানো PDF সেভ করবে)
+        // পিডিএফ ডাউনলোড ফাংশন (লিস্ট ও নিচে সর্বমোট ওভারটাইম সহ)
         function downloadPDF() {
             if (records.length === 0) {
                 alert("পিডিএফ তৈরি করার জন্য কোনো ডাটা নেই!");
@@ -485,13 +517,14 @@
             const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             sortedRecords.forEach(r => {
-                totalOT += r.otHours;
+                let ot = calculateOtHours(r.outTime);
+                totalOT += ot;
                 tableRows += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px; text-align: center;">${r.date}</td>
                         <td style="padding: 10px; text-align: center;">${formatTime(r.inTime)}</td>
                         <td style="padding: 10px; text-align: center;">${formatTime(r.outTime)}</td>
-                        <td style="padding: 10px; text-align: center; color: #FF6A88; font-weight: bold;">${r.otHours > 0 ? r.otHours.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
+                        <td style="padding: 10px; text-align: center; color: #FF6A88; font-weight: bold;">${ot > 0 ? ot.toFixed(2) + ' ঘণ্টা' : 'নাই'}</td>
                     </tr>
                 `;
             });
@@ -531,6 +564,11 @@
             };
 
             html2pdf().set(opt).from(element).save();
+        }
+
+        // প্রিন্ট ফাংশন
+        function printReport() {
+            window.print();
         }
     </script>
 </body>
